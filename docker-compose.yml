@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./BE
+    ports:
+      - "8085:8080"
+    environment:
+      - PORT=8080
+      - GIN_MODE=release
+    volumes:
+      - ./BE/data:/app/data
+
+  frontend:
+    build: ./FE
+    ports:
+      - "4100:4100"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8085/api
+    depends_on:
+      - backend
