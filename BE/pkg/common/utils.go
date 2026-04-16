@@ -1,6 +1,7 @@
 // Common tools and helper functions
 package common
 
+
 import (
 	"crypto/rand"
 	"fmt"
@@ -11,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
+
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
@@ -41,20 +44,36 @@ func RandInt() int {
 const JWTSecret = "A String Very Very Very Strong!!@##$!@#$"      // #nosec G101
 const RandomPassword = "A String Very Very Very Random!!@##$!@#4" // #nosec G101
 
-// A Util function to generate jwt_token which can be used in the request header
-func GenToken(id uint) string {
-	jwt_token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+
+// Generate tokens, returns AccessToken, RefreshToken, error
+func GenToken(id uint) (string, string, error) {
+	jti := uuid.New().String()
+
+	accessClaims := jwt.MapClaims{
 		"id":  id,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
-	})
-	// Sign and get the complete encoded token as a string
-	token, err := jwt_token.SignedString([]byte(JWTSecret))
-	if err != nil {
-		fmt.Printf("failed to sign JWT token for id %d: %v\n", id, err)
-		return ""
+		"jti": jti,
+		"exp": time.Now().Add(time.Minute * 15).Unix(),
 	}
-	return token
+	accessJwt := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessToken, err := accessJwt.SignedString([]byte(JWTSecret))
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshClaims := jwt.MapClaims{
+		"id":  id,
+		"typ": "refresh",
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
+	}
+	refreshJwt := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshToken, err := refreshJwt.SignedString([]byte(JWTSecret))
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
 }
+
 
 // My own Error type that will help return my customized Error info
 //

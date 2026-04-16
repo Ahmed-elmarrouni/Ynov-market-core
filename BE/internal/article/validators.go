@@ -1,17 +1,17 @@
-package articles
+package article
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
-	"github.com/gothinkster/golang-gin-realworld-example-app/users"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/internal/auth"
 )
 
 type ArticleModelValidator struct {
 	Article struct {
 		Title       string   `form:"title" json:"title" binding:"required,min=4"`
-		Description string   `form:"description" json:"description" binding:"required,max=2048"`
-		Body        string   `form:"body" json:"body" binding:"required,max=2048"`
+		Description string   `form:"description" json:"description" binding:"required"`
+		Body        string   `form:"body" json:"body" binding:"required"`
 		Tags        []string `form:"tagList" json:"tagList"`
 	} `json:"article"`
 	articleModel ArticleModel `json:"-"`
@@ -33,7 +33,7 @@ func NewArticleModelValidatorFillWith(articleModel ArticleModel) ArticleModelVal
 }
 
 func (s *ArticleModelValidator) Bind(c *gin.Context) error {
-	myUserModel := c.MustGet("my_user_model").(users.UserModel)
+	myUserModel := c.MustGet("my_user_model").(auth.UserModel)
 
 	err := common.Bind(c, s)
 	if err != nil {
@@ -60,7 +60,7 @@ func NewCommentModelValidator() CommentModelValidator {
 }
 
 func (s *CommentModelValidator) Bind(c *gin.Context) error {
-	myUserModel := c.MustGet("my_user_model").(users.UserModel)
+	myUserModel := c.MustGet("my_user_model").(auth.UserModel)
 
 	err := common.Bind(c, s)
 	if err != nil {

@@ -1,16 +1,22 @@
-package users
+package auth
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"net/http"
+	"time"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/cache"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/logger"
 )
 
 func UsersRegister(router *gin.RouterGroup) {
 	router.POST("", UsersRegistration)
 	router.POST("/", UsersRegistration)
 	router.POST("/login", UsersLogin)
+	router.POST("/logout", UsersLogout)
+	router.POST("/refresh", UsersRefresh)
 }
 
 func UserRegister(router *gin.RouterGroup) {
@@ -89,6 +95,62 @@ func UsersRegistration(c *gin.Context) {
 	c.Set("my_user_model", userModelValidator.userModel)
 	serializer := UserSerializer{c}
 	c.JSON(http.StatusCreated, gin.H{"user": serializer.Response()})
+}
+
+
+func setTokenCookies(c *gin.Context, id uint) {
+	access, refresh, err := common.GenToken(id)
+	if err != nil {
+		logger.Log.Errorw("Failed to generate tokens", "error", err)
+		return
+	}
+	// HttpOnly, Secure, SameSite=Strict
+	c.SetCookie("access_token", access, 15*60, "/", "", true, true)
+	c.SetCookie("refresh_token", refresh, 7*24*60*60, "/", "", true, true)
+}
+
+func UsersLogout(c *gin.Context) {
+	tokenString := extractToken(c)
+	if tokenString != "" {
+		token, _ := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) { return []byte(common.JWTSecret), nil })
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			jti := claims["jti"].(string)
+			exp := int64(claims["exp"].(float64))
+			ttl := time.Until(time.Unix(exp, 0))
+			if ttl > 0 {
+				cache.Client.Set(cache.Ctx, "blacklist:"+jti, "true", ttl)
+			}
+		}
+	}
+	c.SetCookie("access_token", "", -1, "/", "", true, true)
+	c.SetCookie("refresh_token", "", -1, "/", "", true, true)
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+}
+
+func UsersRefresh(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		c.JSON(http.StatusUnauthorized, common.NewError("auth", errors.New("Missing refresh token")))
+		return
+	}
+
+	token, err := jwt.Parse(refreshToken, func(t *jwt.Token) (interface{}, error) {
+		return []byte(common.JWTSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, common.NewError("auth", errors.New("Invalid refresh token")))
+		return
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && claims["typ"] == "refresh" {
+		id := uint(claims["id"].(float64))
+		setTokenCookies(c, id)
+		c.JSON(http.StatusOK, gin.H{"message": "Tokens rotated successfully"})
+		return
+	}
+	
+	c.JSON(http.StatusUnauthorized, common.NewError("auth", errors.New("Invalid token type")))
 }
 
 func UsersLogin(c *gin.Context) {

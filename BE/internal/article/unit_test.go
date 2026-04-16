@@ -1,4 +1,4 @@
-package articles
+package article
 
 import (
 	"bytes"
@@ -9,8 +9,9 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
-	"github.com/gothinkster/golang-gin-realworld-example-app/users"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/database"
+	"github.com/gothinkster/golang-gin-realworld-example-app/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -23,21 +24,21 @@ func setupRouter() *gin.Engine {
 	r.RedirectTrailingSlash = false
 
 	v1 := r.Group("/api")
-	users.UsersRegister(v1.Group("/users"))
-	v1.Use(users.AuthMiddleware(false))
+	auth.UsersRegister(v1.Group("/users"))
+	v1.Use(auth.AuthMiddleware(false))
 	ArticlesAnonymousRegister(v1.Group("/articles"))
 	TagsAnonymousRegister(v1.Group("/tags"))
 
-	v1.Use(users.AuthMiddleware(true))
+	v1.Use(auth.AuthMiddleware(true))
 	ArticlesRegister(v1.Group("/articles"))
 
 	return r
 }
 
-func createTestUser() users.UserModel {
+func createTestUser() auth.UserModel {
 	// Generate a proper password hash to satisfy NOT NULL constraint
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte("testpassword123"), bcrypt.DefaultCost)
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username:     fmt.Sprintf("testuser%d", common.RandInt()),
 		Email:        fmt.Sprintf("test%d@example.com", common.RandInt()),
 		Bio:          "test bio",
@@ -48,7 +49,7 @@ func createTestUser() users.UserModel {
 }
 
 // createArticleWithUser creates a test article with an author user
-func createArticleWithUser(title, slug string) (ArticleModel, users.UserModel) {
+func createArticleWithUser(title, slug string) (ArticleModel, auth.UserModel) {
 	user := createTestUser()
 	articleUserModel := GetArticleUserModel(user)
 	article := ArticleModel{
@@ -67,7 +68,7 @@ func TestArticleModel(t *testing.T) {
 	asserts := assert.New(t)
 
 	// Test article creation
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: "testuser",
 		Email:    "test@example.com",
 		Bio:      "test bio",
@@ -155,7 +156,7 @@ func TestCommentModel(t *testing.T) {
 	asserts := assert.New(t)
 
 	// Create user and article
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: "commentuser",
 		Email:    "comment@example.com",
 		Bio:      "comment bio",
@@ -197,7 +198,7 @@ func TestFindManyArticle(t *testing.T) {
 	asserts := assert.New(t)
 
 	// Create a user and article for testing
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: fmt.Sprintf("findmanyuser%d", common.RandInt()),
 		Email:    fmt.Sprintf("findmany%d@example.com", common.RandInt()),
 		Bio:      "test bio",
@@ -220,41 +221,41 @@ func TestFindManyArticle(t *testing.T) {
 	article.favoriteBy(articleUserModel)
 
 	// Test FindManyArticle with default params
-	articles, count, err := FindManyArticle("", "", "10", "0", "")
+	articles, count, err := FindManyArticle("", "", "10", "0", "", "", 0)
 	asserts.NoError(err, "FindManyArticle should succeed")
 	asserts.GreaterOrEqual(count, 1, "Count should be at least 1")
 	asserts.NotNil(articles, "Articles should not be nil")
 
 	// Test with invalid limit/offset
-	_, _, err = FindManyArticle("", "", "invalid", "invalid", "")
+	_, _, err = FindManyArticle("", "", "invalid", "invalid", "", "", 0)
 	asserts.NoError(err, "FindManyArticle with invalid params should succeed")
 
 	// Test filter by tag
-	_, count, err = FindManyArticle("findmanytag", "", "10", "0", "")
+	_, count, err = FindManyArticle("findmanytag", "", "10", "0", "", "", 0)
 	asserts.NoError(err, "FindManyArticle by tag should succeed")
 	asserts.GreaterOrEqual(count, 1, "Count should be at least 1 for tag filter")
 
 	// Test filter by non-existent tag
-	_, count, err = FindManyArticle("nonexistenttag", "", "10", "0", "")
+	_, count, err = FindManyArticle("nonexistenttag", "", "10", "0", "", "", 0)
 	asserts.NoError(err, "FindManyArticle by non-existent tag should succeed")
 	asserts.Equal(0, count, "Count should be 0 for non-existent tag")
 
 	// Test filter by author
-	_, count, err = FindManyArticle("", userModel.Username, "10", "0", "")
+	_, count, err = FindManyArticle("", userModel.Username, "10", "0", "", "", 0)
 	asserts.NoError(err, "FindManyArticle by author should succeed")
 	asserts.GreaterOrEqual(count, 1, "Count should be at least 1 for author filter")
 
 	// Test filter by non-existent author
-	_, _, err = FindManyArticle("", "nonexistentauthor", "10", "0", "")
+	_, _, err = FindManyArticle("", "nonexistentauthor", "10", "0", "", "", 0)
 	asserts.NoError(err, "FindManyArticle by non-existent author should succeed")
 
 	// Test filter by favorited
-	_, count, err = FindManyArticle("", "", "10", "0", userModel.Username)
+	_, count, err = FindManyArticle("", "", "10", "0", userModel.Username, "", 0)
 	asserts.NoError(err, "FindManyArticle by favorited should succeed")
 	asserts.GreaterOrEqual(count, 1, "Count should be at least 1 for favorited filter")
 
 	// Test filter by non-existent favorited user
-	_, _, err = FindManyArticle("", "", "10", "0", "nonexistentuser")
+	_, _, err = FindManyArticle("", "", "10", "0", "nonexistentuser", "", 0)
 	asserts.NoError(err, "FindManyArticle by non-existent favorited should succeed")
 }
 
@@ -262,7 +263,7 @@ func TestGetArticleFeed(t *testing.T) {
 	asserts := assert.New(t)
 
 	// Create a user
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: "feeduser",
 		Email:    "feed@example.com",
 		Bio:      "feed bio",
@@ -282,7 +283,7 @@ func TestSetTags(t *testing.T) {
 	asserts := assert.New(t)
 
 	// Create user and article
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: "taguser",
 		Email:    "tag@example.com",
 		Bio:      "tag bio",
@@ -308,10 +309,10 @@ func TestSetTags(t *testing.T) {
 
 // Helper functions for router tests - used by TestArticleRouters
 
-func userModelMocker(n int) []users.UserModel {
+func userModelMocker(n int) []auth.UserModel {
 	var offset int64
-	test_db.Model(&users.UserModel{}).Count(&offset)
-	var ret []users.UserModel
+	test_db.Model(&auth.UserModel{}).Count(&offset)
+	var ret []auth.UserModel
 	for i := int(offset) + 1; i <= int(offset)+n; i++ {
 		image := fmt.Sprintf("http://image/%v.jpg", i)
 		// Generate password hash directly using bcrypt
@@ -319,7 +320,7 @@ func userModelMocker(n int) []users.UserModel {
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate password hash: %v", err))
 		}
-		userModel := users.UserModel{
+		userModel := auth.UserModel{
 			Username:     fmt.Sprintf("articleuser%v", i),
 			Email:        fmt.Sprintf("articleuser%v@test.com", i),
 			Bio:          fmt.Sprintf("bio%v", i),
@@ -333,9 +334,9 @@ func userModelMocker(n int) []users.UserModel {
 }
 
 func resetDBWithMock() {
-	common.TestDBFree(test_db)
-	test_db = common.TestDBInit()
-	users.AutoMigrate()
+	database.TestDBFree(test_db)
+	test_db = database.TestDBInit()
+	test_db.AutoMigrate(&auth.UserModel{}, &auth.FollowModel{})
 	test_db.AutoMigrate(&ArticleModel{})
 	test_db.AutoMigrate(&TagModel{})
 	test_db.AutoMigrate(&FavoriteModel{})
@@ -662,10 +663,10 @@ func TestArticleRouters(t *testing.T) {
 	asserts := assert.New(t)
 
 	r := gin.New()
-	r.Use(users.AuthMiddleware(false))
+	r.Use(auth.AuthMiddleware(false))
 	ArticlesAnonymousRegister(r.Group("/api/articles"))
 	TagsAnonymousRegister(r.Group("/api/tags"))
-	r.Use(users.AuthMiddleware(true))
+	r.Use(auth.AuthMiddleware(true))
 	ArticlesRegister(r.Group("/api/articles"))
 
 	for _, testData := range articleRequestTests {
@@ -790,10 +791,10 @@ func TestArticleFeedCount(t *testing.T) {
 	asserts.Equal(1, len(articles), "Should have 1 article in feed")
 }
 
-func followUser(follower, following users.UserModel) error {
-	db := common.GetDB()
-	var follow users.FollowModel
-	err := db.FirstOrCreate(&follow, &users.FollowModel{
+func followUser(follower, following auth.UserModel) error {
+	db := database.GetDB()
+	var follow auth.FollowModel
+	err := db.FirstOrCreate(&follow, &auth.FollowModel{
 		FollowingID:  following.ID,
 		FollowedByID: follower.ID,
 	}).Error
@@ -1248,7 +1249,7 @@ func TestCommentDeleteWithValidArticle(t *testing.T) {
 func TestSetTagsEmpty(t *testing.T) {
 	asserts := assert.New(t)
 
-	userModel := users.UserModel{
+	userModel := auth.UserModel{
 		Username: fmt.Sprintf("emptytaguser%d", common.RandInt()),
 		Email:    fmt.Sprintf("emptytag%d@example.com", common.RandInt()),
 		Bio:      "test bio",
@@ -1592,14 +1593,14 @@ func TestCommentDeleteAuthorizationForbidden(t *testing.T) {
 
 // This is a hack way to add test database for each case
 func TestMain(m *testing.M) {
-	test_db = common.TestDBInit()
-	users.AutoMigrate()
+	test_db = database.TestDBInit()
+	test_db.AutoMigrate(&auth.UserModel{}, &auth.FollowModel{})
 	test_db.AutoMigrate(&ArticleModel{})
 	test_db.AutoMigrate(&TagModel{})
 	test_db.AutoMigrate(&FavoriteModel{})
 	test_db.AutoMigrate(&ArticleUserModel{})
 	test_db.AutoMigrate(&CommentModel{})
 	exitVal := m.Run()
-	common.TestDBFree(test_db)
+	database.TestDBFree(test_db)
 	os.Exit(exitVal)
 }

@@ -1,10 +1,10 @@
-package articles
+package article
 
 import (
 	"sort"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gothinkster/golang-gin-realworld-example-app/users"
+	"github.com/gothinkster/golang-gin-realworld-example-app/internal/auth"
 )
 
 type TagSerializer struct {
@@ -35,8 +35,8 @@ type ArticleUserSerializer struct {
 	ArticleUserModel
 }
 
-func (s *ArticleUserSerializer) Response() users.ProfileResponse {
-	response := users.ProfileSerializer{C: s.C, UserModel: s.ArticleUserModel.UserModel}
+func (s *ArticleUserSerializer) Response() auth.ProfileResponse {
+	response := auth.ProfileSerializer{C: s.C, UserModel: s.ArticleUserModel.UserModel}
 	return response.Response()
 }
 
@@ -53,7 +53,7 @@ type ArticleResponse struct {
 	Body           string                `json:"body"`
 	CreatedAt      string                `json:"createdAt"`
 	UpdatedAt      string                `json:"updatedAt"`
-	Author         users.ProfileResponse `json:"author"`
+	Author         auth.ProfileResponse `json:"author"`
 	Tags           []string              `json:"tagList"`
 	Favorite       bool                  `json:"favorited"`
 	FavoritesCount uint                  `json:"favoritesCount"`
@@ -65,7 +65,7 @@ type ArticlesSerializer struct {
 }
 
 func (s *ArticleSerializer) Response() ArticleResponse {
-	myUserModel := s.C.MustGet("my_user_model").(users.UserModel)
+	myUserModel := s.C.MustGet("my_user_model").(auth.UserModel)
 	authorSerializer := ArticleUserSerializer{C: s.C, ArticleUserModel: s.Author}
 	response := ArticleResponse{
 		ID:          s.ID,
@@ -127,7 +127,7 @@ func (s *ArticlesSerializer) Response() []ArticleResponse {
 
 	favoriteCounts := BatchGetFavoriteCounts(articleIDs)
 
-	myUserModel := s.C.MustGet("my_user_model").(users.UserModel)
+	myUserModel := s.C.MustGet("my_user_model").(auth.UserModel)
 	articleUserModel := GetArticleUserModel(myUserModel)
 	favoriteStatus := BatchGetFavoriteStatus(articleIDs, articleUserModel.ID)
 
@@ -155,7 +155,7 @@ type CommentResponse struct {
 	Body      string                `json:"body"`
 	CreatedAt string                `json:"createdAt"`
 	UpdatedAt string                `json:"updatedAt"`
-	Author    users.ProfileResponse `json:"author"`
+	Author    auth.ProfileResponse `json:"author"`
 }
 
 func (s *CommentSerializer) Response() CommentResponse {

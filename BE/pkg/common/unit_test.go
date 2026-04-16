@@ -11,12 +11,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/database"
 )
 
 func TestConnectingDatabase(t *testing.T) {
 	asserts := assert.New(t)
-	db := Init()
-	dbPath := GetDBPath()
+	db := database.Init()
+	dbPath := database.GetDBPath()
 	// Test create & close DB
 	_, err := os.Stat(dbPath)
 	asserts.NoError(err, "Db should exist")
@@ -25,7 +26,7 @@ func TestConnectingDatabase(t *testing.T) {
 	asserts.NoError(sqlDB.Ping(), "Db should be able to ping")
 
 	// Test get a connecting from connection pools
-	connection := GetDB()
+	connection := database.GetDB()
 	sqlDB, err = connection.DB()
 	asserts.NoError(err, "Should get sql.DB")
 	asserts.NoError(sqlDB.Ping(), "Db should be able to ping")
@@ -33,7 +34,7 @@ func TestConnectingDatabase(t *testing.T) {
 
 	// Test DB exceptions
 	os.Chmod(dbPath, 0000)
-	db = Init()
+	db = database.Init()
 	sqlDB, err = db.DB()
 	asserts.NoError(err, "Should get sql.DB")
 	asserts.Error(sqlDB.Ping(), "Db should not be able to ping")
@@ -44,18 +45,18 @@ func TestConnectingDatabase(t *testing.T) {
 func TestConnectingTestDatabase(t *testing.T) {
 	asserts := assert.New(t)
 	// Test create & close DB
-	db := TestDBInit()
-	testDBPath := GetTestDBPath()
+	db := database.TestDBInit()
+	testDBPath := database.GetTestDBPath()
 	_, err := os.Stat(testDBPath)
 	asserts.NoError(err, "Db should exist")
 	sqlDB, err := db.DB()
 	asserts.NoError(err, "Should get sql.DB")
 	asserts.NoError(sqlDB.Ping(), "Db should be able to ping")
-	TestDBFree(db)
+	database.TestDBFree(db)
 
 	// Test close delete DB
-	db = TestDBInit()
-	TestDBFree(db)
+	db = database.TestDBInit()
+	database.TestDBFree(db)
 	_, err = os.Stat(testDBPath)
 
 	asserts.Error(err, "Db should not exist")
@@ -67,11 +68,11 @@ func TestDBDirCreation(t *testing.T) {
 	os.Setenv("TEST_DB_PATH", "tmp/nested/test.db")
 	defer os.Unsetenv("TEST_DB_PATH")
 
-	db := TestDBInit()
-	testDBPath := GetTestDBPath()
+	db := database.TestDBInit()
+	testDBPath := database.GetTestDBPath()
 	_, err := os.Stat(testDBPath)
 	asserts.NoError(err, "Db should exist in nested directory")
-	TestDBFree(db)
+	database.TestDBFree(db)
 
 	// Cleanup directory
 	os.RemoveAll("tmp/nested")
@@ -83,7 +84,7 @@ func TestDBPathOverride(t *testing.T) {
 	os.Setenv("TEST_DB_PATH", customPath)
 	defer os.Unsetenv("TEST_DB_PATH")
 
-	asserts.Equal(customPath, GetTestDBPath(), "Should use env var")
+	asserts.Equal(customPath, database.GetTestDBPath(), "Should use env var")
 }
 
 func TestRandString(t *testing.T) {
@@ -119,7 +120,7 @@ func TestRandInt(t *testing.T) {
 func TestGenToken(t *testing.T) {
 	asserts := assert.New(t)
 
-	token := GenToken(2)
+	token, _, _ := GenToken(2)
 
 	asserts.IsType(token, string("token"), "token type should be string")
 	asserts.Len(token, 115, "JWT's length should be 115")
@@ -128,9 +129,9 @@ func TestGenToken(t *testing.T) {
 func TestGenTokenMultipleUsers(t *testing.T) {
 	asserts := assert.New(t)
 
-	token1 := GenToken(1)
-	token2 := GenToken(2)
-	token100 := GenToken(100)
+	token1, _, _ := GenToken(1)
+	token2, _, _ := GenToken(2)
+	token100, _, _ := GenToken(100)
 
 	asserts.NotEqual(token1, token2, "Different user IDs should generate different tokens")
 	asserts.NotEqual(token2, token100, "Different user IDs should generate different tokens")
@@ -145,7 +146,7 @@ func TestHeaderTokenMock(t *testing.T) {
 	asserts := assert.New(t)
 
 	req, _ := http.NewRequest("GET", "/test", nil)
-	token := GenToken(5)
+	token, _, _ := GenToken(5)
 	HeaderTokenMock(req, 5)
 
 	authHeader := req.Header.Get("Authorization")
@@ -175,7 +176,7 @@ func TestVerifyTokenClaims(t *testing.T) {
 
 	// Test valid token
 	userID := uint(123)
-	token := GenToken(userID)
+	token, _, _ := GenToken(userID)
 	claims, err := VerifyTokenClaims(token)
 	asserts.NoError(err, "VerifyTokenClaims should not error for valid token")
 	asserts.Equal(float64(userID), claims["id"], "Claims should contain correct user ID")
@@ -257,8 +258,8 @@ func TestNewValidatorError(t *testing.T) {
 func TestNewError(t *testing.T) {
 	assert := assert.New(t)
 
-	db := TestDBInit()
-	defer TestDBFree(db)
+	db := database.TestDBInit()
+	defer database.TestDBFree(db)
 
 	type NonExistentTable struct {
 		Field string
@@ -292,7 +293,7 @@ func TestDatabaseDirCreation(t *testing.T) {
 
 	// Init should create the directory
 
-	db := Init()
+	db := database.Init()
 
 	sqlDB, err := db.DB()
 
@@ -330,7 +331,7 @@ func TestDBInitDirCreation(t *testing.T) {
 
 	// TestDBInit should create the directory
 
-	db := TestDBInit()
+	db := database.TestDBInit()
 
 	sqlDB, err := db.DB()
 
@@ -340,7 +341,7 @@ func TestDBInitDirCreation(t *testing.T) {
 
 	// Clean up after test
 
-	TestDBFree(db)
+	database.TestDBFree(db)
 
 	os.RemoveAll(tempDir)
 
@@ -356,7 +357,7 @@ func TestDatabaseWithCurrentDirectory(t *testing.T) {
 	os.Setenv("DB_PATH", "test_simple.db")
 
 	// Init should work without directory creation
-	db := Init()
+	db := database.Init()
 	sqlDB, err := db.DB()
 
 	asserts.NoError(err, "Should get sql.DB")

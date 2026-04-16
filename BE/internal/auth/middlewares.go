@@ -1,4 +1,4 @@
-package users
+package auth
 
 import (
 	"net/http"
@@ -6,7 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/cache"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/database"
 )
 
 // Extract token from Authorization header or query parameter
@@ -30,7 +32,7 @@ func extractToken(c *gin.Context) string {
 func UpdateContextUserModel(c *gin.Context, my_user_id uint) {
 	var myUserModel UserModel
 	if my_user_id != 0 {
-		db := common.GetDB()
+		db := database.GetDB()
 		db.First(&myUserModel, my_user_id)
 	}
 	c.Set("my_user_id", my_user_id)
@@ -68,6 +70,19 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			// Blacklist verification
+			if jti, ok := claims["jti"].(string); ok {
+				val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
+				if err == nil && val == "true" {
+					if auto401 {
+						c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
+					} else {
+						c.Abort()
+					}
+					return
+				}
+			}
+
 			my_user_id := uint(claims["id"].(float64))
 			UpdateContextUserModel(c, my_user_id)
 		}

@@ -1,11 +1,9 @@
-package users
+package auth
 
 import (
 	"github.com/gin-gonic/gin"
-
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
 )
-
 type ProfileSerializer struct {
 	C *gin.Context
 	UserModel
@@ -55,12 +53,14 @@ func (self *UserSerializer) Response() UserResponse {
 	if myUserModel.Image != nil {
 		image = *myUserModel.Image
 	}
+	token, _, _ := common.GenToken(myUserModel.ID)
+	
 	user := UserResponse{
 		Username: myUserModel.Username,
 		Email:    myUserModel.Email,
 		Bio:      myUserModel.Bio,
 		Image:    image,
-		Token:    common.GenToken(myUserModel.ID),
+		Token:    token,
 	}
 	return user
 }
