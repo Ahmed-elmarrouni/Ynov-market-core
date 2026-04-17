@@ -1,23 +1,26 @@
-# Use Go 1.22 Alpine for a modern, minimal image
-FROM golang:1.22-alpine
-
+# Build Stage
+FROM golang:1.26-alpine AS builder
 WORKDIR /app
-
-# Install build dependencies required for SQLite (CGO)
-RUN apk add --no-cache gcc musl-dev
-
-# Copy dependency manifests first for layer caching
+RUN apk add --no-cache gcc musl-dev curl
 COPY go.mod go.sum ./
 RUN go mod download
-
-# Copy the rest of the application
 COPY . .
+RUN CGO_ENABLED=1 GOOS=linux go build -o main ./cmd/api
 
-# Build with CGO enabled (required for mattn/go-sqlite3)
-RUN CGO_ENABLED=1 GOOS=linux go build -o main .
+# Download migrate tool binary
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
 
-# Expose the API port
+# Final Production Stage
+FROM alpine:latest
+WORKDIR /app
+RUN apk add --no-cache ca-certificates libc6-compat
+COPY --from=builder /app/main .
+COPY --from=builder /app/migrate ./migrate
+COPY --from=builder /app/db/migrations ./db/migrations
+COPY --from=builder /app/start.sh .
+
+# SENIOR FIX: Explicitly set execution permissions
+RUN chmod +x /app/start.sh /app/migrate /app/main
+
 EXPOSE 8080
-
-# Run the compiled binary
-CMD ["./main"]
+CMD ["./start.sh"]
