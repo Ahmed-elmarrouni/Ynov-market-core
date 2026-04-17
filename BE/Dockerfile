@@ -1,10 +1,12 @@
 # Build Stage
 FROM golang:1.26-alpine AS builder
 WORKDIR /app
+# Install build dependencies
 RUN apk add --no-cache gcc musl-dev curl
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+# Point build to the correct subdirectory
 RUN CGO_ENABLED=1 GOOS=linux go build -o main ./cmd/api
 
 # Download migrate tool binary
@@ -19,7 +21,7 @@ COPY --from=builder /app/migrate ./migrate
 COPY --from=builder /app/db/migrations ./db/migrations
 COPY --from=builder /app/start.sh .
 
-# SENIOR FIX: Explicitly set execution permissions
+# SENIOR FIX: Ensure permissions are set during build time
 RUN chmod +x /app/start.sh /app/migrate /app/main
 
 EXPOSE 8080
