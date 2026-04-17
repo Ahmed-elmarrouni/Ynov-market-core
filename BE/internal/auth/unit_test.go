@@ -1,4 +1,4 @@
-package users
+package auth
 
 import (
 	"bytes"
@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/database"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -92,9 +93,9 @@ func TestUserModel(t *testing.T) {
 
 // Reset test DB and create new one with mock data
 func resetDBWithMock() {
-	common.TestDBFree(test_db)
-	test_db = common.TestDBInit()
-	AutoMigrate()
+	database.TestDBFree(test_db)
+	test_db = database.TestDBInit()
+	test_db.AutoMigrate(&UserModel{}, &FollowModel{})
 	userModelMocker(3)
 }
 
@@ -223,7 +224,8 @@ var unauthRequestTests = []struct {
 	},
 	{
 		func(req *http.Request) {
-			req.Header.Set("Authorization", fmt.Sprintf("Tokee %v", common.GenToken(1)))
+			token, _, _ := common.GenToken(1)
+			req.Header.Set("Authorization", fmt.Sprintf("Tokee %v", token))
 		},
 		"/user/",
 		"GET",
@@ -362,8 +364,8 @@ var unauthRequestTests = []struct {
 	},
 	{
 		func(req *http.Request) {
-			common.TestDBFree(test_db)
-			test_db = common.TestDBInit()
+			database.TestDBFree(test_db)
+			test_db = database.TestDBInit()
 
 			test_db.AutoMigrate(&UserModel{})
 			userModelMocker(3)
@@ -500,7 +502,7 @@ func TestExtractTokenFromQueryParameter(t *testing.T) {
 	resetDBWithMock()
 
 	// Test with access_token query parameter
-	token := common.GenToken(1)
+	token, _, _ := common.GenToken(1)
 	req, _ := http.NewRequest("GET", "/test?access_token="+token, nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -546,9 +548,9 @@ func TestAuthMiddlewareNoToken(t *testing.T) {
 // This is a hack way to add test database for each case, as whole test will just share one database.
 // You can read TestWithoutAuth's comment to know how to not share database each case.
 func TestMain(m *testing.M) {
-	test_db = common.TestDBInit()
-	AutoMigrate()
+	test_db = database.TestDBInit()
+	test_db.AutoMigrate(&UserModel{}, &FollowModel{})
 	exitVal := m.Run()
-	common.TestDBFree(test_db)
+	database.TestDBFree(test_db)
 	os.Exit(exitVal)
 }

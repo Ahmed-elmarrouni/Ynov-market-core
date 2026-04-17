@@ -1,9 +1,9 @@
-package users
+package auth
 
 import (
 	"errors"
 
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+	"github.com/gothinkster/golang-gin-realworld-example-app/pkg/database"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -41,13 +41,6 @@ type FollowModel struct {
 	FollowedByID uint
 }
 
-// Migrate the schema of database if needed
-func AutoMigrate() {
-	db := common.GetDB()
-
-	db.AutoMigrate(&UserModel{})
-	db.AutoMigrate(&FollowModel{})
-}
 
 // What's bcrypt? https://en.wikipedia.org/wiki/Bcrypt
 // Golang bcrypt doc: https://godoc.org/golang.org/x/crypto/bcrypt
@@ -78,7 +71,7 @@ func (u *UserModel) checkPassword(password string) error {
 //
 //	userModel, err := FindOneUser(&UserModel{Username: "username0"})
 func FindOneUser(condition interface{}) (UserModel, error) {
-	db := common.GetDB()
+	db := database.GetDB()
 	var model UserModel
 	err := db.Where(condition).First(&model).Error
 	return model, err
@@ -88,7 +81,7 @@ func FindOneUser(condition interface{}) (UserModel, error) {
 //
 //	if err := SaveOne(&userModel); err != nil { ... }
 func SaveOne(data interface{}) error {
-	db := common.GetDB()
+	db := database.GetDB()
 	err := db.Save(data).Error
 	return err
 }
@@ -97,7 +90,7 @@ func SaveOne(data interface{}) error {
 //
 //	err := db.Model(userModel).Updates(UserModel{Username: "wangzitian0"}).Error
 func (model *UserModel) Update(data interface{}) error {
-	db := common.GetDB()
+	db := database.GetDB()
 	err := db.Model(model).Updates(data).Error
 	return err
 }
@@ -106,7 +99,7 @@ func (model *UserModel) Update(data interface{}) error {
 //
 //	err = userModel1.following(userModel2)
 func (u UserModel) following(v UserModel) error {
-	db := common.GetDB()
+	db := database.GetDB()
 	var follow FollowModel
 	err := db.FirstOrCreate(&follow, &FollowModel{
 		FollowingID:  v.ID,
@@ -119,7 +112,7 @@ func (u UserModel) following(v UserModel) error {
 //
 //	followingBool = myUserModel.isFollowing(self.UserModel)
 func (u UserModel) isFollowing(v UserModel) bool {
-	db := common.GetDB()
+	db := database.GetDB()
 	var follow FollowModel
 	db.Where(FollowModel{
 		FollowingID:  v.ID,
@@ -132,7 +125,7 @@ func (u UserModel) isFollowing(v UserModel) bool {
 //
 //	err = userModel1.unFollowing(userModel2)
 func (u UserModel) unFollowing(v UserModel) error {
-	db := common.GetDB()
+	db := database.GetDB()
 	err := db.Where("following_id = ? AND followed_by_id = ?", v.ID, u.ID).Delete(&FollowModel{}).Error
 	return err
 }
@@ -141,7 +134,7 @@ func (u UserModel) unFollowing(v UserModel) error {
 //
 //	followings := userModel.GetFollowings()
 func (u UserModel) GetFollowings() []UserModel {
-	db := common.GetDB()
+	db := database.GetDB()
 	var follows []FollowModel
 	var followings []UserModel
 	db.Preload("Following").Where(FollowModel{

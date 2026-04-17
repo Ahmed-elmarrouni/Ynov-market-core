@@ -9,7 +9,8 @@ import (
 
 // HeaderTokenMock adds authorization token to request header for testing
 func HeaderTokenMock(req *http.Request, u uint) {
-	req.Header.Set("Authorization", fmt.Sprintf("Token %v", GenToken(u)))
+	token, _, _ := GenToken(u)
+	req.Header.Set("Authorization", fmt.Sprintf("Token %v", token))
 }
 
 // ExtractTokenFromHeader extracts JWT token from Authorization header

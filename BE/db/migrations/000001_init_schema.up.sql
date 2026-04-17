@@ -1,0 +1,70 @@
+CREATE TABLE user_models (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255),
+    email VARCHAR(255) UNIQUE,
+    bio VARCHAR(1024),
+    image TEXT,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE follow_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    following_id INTEGER REFERENCES user_models(id) ON DELETE CASCADE,
+    followed_by_id INTEGER REFERENCES user_models(id) ON DELETE CASCADE
+);
+
+CREATE TABLE article_user_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    user_model_id INTEGER REFERENCES user_models(id) ON DELETE CASCADE
+);
+
+CREATE TABLE article_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    slug VARCHAR(255) UNIQUE,
+    title VARCHAR(255),
+    description TEXT,
+    body TEXT,
+    author_id INTEGER REFERENCES article_user_models(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tag_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    tag VARCHAR(255) UNIQUE
+);
+
+CREATE TABLE article_tags (
+    article_model_id INTEGER REFERENCES article_models(id) ON DELETE CASCADE,
+    tag_model_id INTEGER REFERENCES tag_models(id) ON DELETE CASCADE,
+    PRIMARY KEY (article_model_id, tag_model_id)
+);
+
+CREATE TABLE favorite_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    favorite_id INTEGER REFERENCES article_models(id) ON DELETE CASCADE,
+    favorite_by_id INTEGER REFERENCES article_user_models(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comment_models (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    article_id INTEGER REFERENCES article_models(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES article_user_models(id) ON DELETE CASCADE,
+    body VARCHAR(2048)
+);

@@ -159,3 +159,7 @@ Run coverage report:
 go test -coverprofile=coverage.out ./...
 go tool cover -func=coverage.out
 ```
+
+
+migration 
+migrate -path /Users/ahmed/Ynov/DevOps/final-lab/BE/db/migrations -database "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
