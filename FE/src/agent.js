@@ -6,10 +6,20 @@ const API_ROOT =
 const encode = encodeURIComponent;
 const responseBody = res => res.body;
 
-let token = null;
+// Reads current JWT from localStorage so the plugin always picks up the
+// latest value (e.g. right after login before a page reload).
+let token = window.localStorage.getItem('jwt');
+
+// Call this whenever the token changes so in-flight request builders
+// immediately reflect the new value.
+export const setToken = _token => {
+  token = _token;
+};
+
+// superagent plugin: attaches "Authorization: Token <jwt>" to every request
 const tokenPlugin = req => {
   if (token) {
-    req.set('authorization', `Token ${token}`);
+    req.set('Authorization', `Token ${token}`);
   }
 };
 
@@ -78,7 +88,5 @@ export default {
   Comments,
   Profile,
   Tags,
-  setToken: _token => {
-    token = _token;
-  },
+  setToken,
 };

@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import agent from '../agent';
 import { APP_LOAD, REDIRECT } from '../constants/actionTypes';
 import Header from './Header';
+import Toast from './Toast';
 import Article from './Article';
 import Editor from './Editor';
 import Home from './Home';
@@ -21,10 +22,11 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLoad: (payload, token) =>
+  onLoad: (payload, token) => // <-- ADD token parameter
     dispatch({ type: APP_LOAD, payload, token, skipTracking: true }),
   onRedirect: () => dispatch({ type: REDIRECT }),
 });
+
 
 // Wrapper to provide useNavigate hook to the class component
 function AppWrapper(props) {
@@ -34,12 +36,15 @@ function AppWrapper(props) {
 
 class AppInner extends React.Component {
   componentDidMount() {
-    const token = window.localStorage.getItem('jwt');
-    if (token) {
-      agent.setToken(token);
+    const jwt = window.localStorage.getItem('jwt');
+    if (jwt) {
+      agent.setToken(jwt); // <-- CRITICAL: Tell superagent to use this token immediately
+      this.props.onLoad(agent.Auth.current(), jwt); // <-- CRITICAL: Pass jwt to Redux
+    } else {
+      this.props.onLoad(Promise.resolve(null), null);
     }
-    this.props.onLoad(token ? agent.Auth.current() : null, token);
   }
+
 
   componentDidUpdate(prevProps) {
     if (prevProps.redirectTo !== this.props.redirectTo && this.props.redirectTo) {
@@ -56,6 +61,7 @@ class AppInner extends React.Component {
             appName={this.props.appName}
             currentUser={this.props.currentUser}
           />
+          <Toast />
           <Routes>
             <Route exact path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -67,6 +73,7 @@ class AppInner extends React.Component {
             <Route path="/@:username/favorites" element={<ProfileFavorites />} />
             <Route path="/@:username" element={<Profile />} />
           </Routes>
+          <Toast />
         </div>
       );
     }

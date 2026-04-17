@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The rest of the custom CSS I gave you goes here... */
+
 /* =============================================================
    Conduit Bootstrap Theme — Bundled locally for Vite
    Source: gothinkster/conduit-bootstrap-template (archived)
@@ -131,15 +137,53 @@ a:hover {
   margin-left: -15px;
 }
 
-.col-xs-12 { flex: 0 0 100%; max-width: 100%; padding: 0 15px; }
-.col-md-3  { flex: 0 0 25%; max-width: 25%; padding: 0 15px; }
-.col-md-6  { flex: 0 0 50%; max-width: 50%; padding: 0 15px; }
-.col-md-9  { flex: 0 0 75%; max-width: 75%; padding: 0 15px; }
-.col-md-10 { flex: 0 0 83.333%; max-width: 83.333%; padding: 0 15px; }
-.col-md-12 { flex: 0 0 100%; max-width: 100%; padding: 0 15px; }
-.offset-md-1 { margin-left: 8.333%; }
-.offset-md-2 { margin-left: 16.666%; }
-.offset-md-3 { margin-left: 25%; }
+.col-xs-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0 15px;
+}
+
+.col-md-3 {
+  flex: 0 0 25%;
+  max-width: 25%;
+  padding: 0 15px;
+}
+
+.col-md-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding: 0 15px;
+}
+
+.col-md-9 {
+  flex: 0 0 75%;
+  max-width: 75%;
+  padding: 0 15px;
+}
+
+.col-md-10 {
+  flex: 0 0 83.333%;
+  max-width: 83.333%;
+  padding: 0 15px;
+}
+
+.col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0 15px;
+}
+
+.offset-md-1 {
+  margin-left: 8.333%;
+}
+
+.offset-md-2 {
+  margin-left: 16.666%;
+}
+
+.offset-md-3 {
+  margin-left: 25%;
+}
 
 /* ---- Banner ---- */
 .banner {
@@ -149,7 +193,7 @@ a:hover {
   margin-bottom: 2rem;
   text-align: center;
   box-shadow: inset 0 8px 8px -8px rgba(0, 0, 0, 0.3),
-              inset 0 -8px 8px -8px rgba(0, 0, 0, 0.3);
+    inset 0 -8px 8px -8px rgba(0, 0, 0, 0.3);
 }
 
 .banner h1.logo-font {
@@ -780,7 +824,475 @@ img {
 
 .outline-active .nav-link:hover,
 .outline-active .nav-link.active {
-  color: #5cb85c;
-  border-bottom: 2px solid #5cb85c;
+  color: var(--brand-primary, #4f46e5);
+  border-bottom: 2px solid var(--brand-primary, #4f46e5);
   text-decoration: none;
+}
+
+/* =============================================================
+   Ynov Market Core - Modern Theme Overrides
+   ============================================================= */
+
+:root {
+  --brand-primary: #4f46e5;
+  /* Indigo 600 */
+  --brand-primary-hover: #4338ca;
+  /* Indigo 700 */
+  --brand-secondary: #64748b;
+  /* Slate 500 */
+  --text-base: #1e293b;
+  /* Slate 800 */
+  --text-muted: #64748b;
+  /* Slate 500 */
+  --bg-page: #f8fafc;
+  /* Slate 50 */
+  --bg-surface: #ffffff;
+  --border-radius-sm: 0.375rem;
+  --border-radius-md: 0.75rem;
+  --border-radius-lg: 1rem;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Inter', 'Outfit', 'Segoe UI', Roboto, sans-serif !important;
+  color: var(--text-base) !important;
+  background-color: var(--bg-page) !important;
+}
+
+a {
+  color: var(--brand-primary);
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--brand-primary-hover);
+  text-decoration: none;
+}
+
+/* Navbar Modernization */
+.navbar {
+  background-color: var(--bg-surface) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--shadow-sm);
+  padding: 1rem !important;
+}
+
+.navbar-brand {
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+  color: var(--brand-primary) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px;
+  font-size: 1.75rem !important;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500;
+  color: var(--text-muted) !important;
+  transition: var(--transition);
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: var(--brand-primary) !important;
+}
+
+/* Hero Banner */
+.banner {
+  background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%) !important;
+  box-shadow: none !important;
+  padding: 4rem 0 !important;
+}
+
+.banner h1.logo-font {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+  letter-spacing: -1px;
+}
+
+.banner p {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 400 !important;
+}
+
+/* Article Cards Refactor */
+.article-preview {
+  background: var(--bg-surface);
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem !important;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.article-preview:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.article-preview:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.article-preview .article-meta .info .author {
+  color: var(--text-base) !important;
+  font-weight: 600 !important;
+}
+
+.article-preview h1 {
+  font-family: 'Outfit', sans-serif !important;
+  color: var(--text-base) !important;
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+}
+
+.preview-link span {
+  color: var(--brand-primary) !important;
+  font-weight: 500 !important;
+  font-style: normal !important;
+}
+
+/* Button Upgrades */
+.btn {
+  border-radius: var(--border-radius-sm) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-primary-hover) !important;
+  border-color: var(--brand-primary-hover) !important;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+  color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--brand-primary) !important;
+  color: #fff !important;
+}
+
+/* Tabs / Nav Pills */
+.nav-pills .nav-link {
+  font-weight: 600;
+  color: var(--text-muted) !important;
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .nav-link:hover {
+  color: var(--brand-primary) !important;
+  border-bottom: 2px solid var(--brand-primary) !important;
+}
+
+/* Tags & Badges */
+.tag-default {
+  border-radius: var(--border-radius-sm) !important;
+  padding: 0.25em 0.6em !important;
+  font-weight: 500 !important;
+}
+
+.tag-primary {
+  background-color: var(--brand-primary) !important;
+}
+
+/* Forms */
+.form-control {
+  border-radius: var(--border-radius-sm) !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 0.75rem 1rem !important;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+}
+
+/* Sidebar Refresh */
+.sidebar {
+  background: var(--bg-surface) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem !important;
+}
+
+/* Pagination */
+.page-item.active .page-link {
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+}
+
+.page-link {
+  color: var(--brand-primary) !important;
+  border-radius: var(--border-radius-sm) !important;
+  margin: 0 2px;
+}
+
+.page-link:hover {
+  background-color: var(--brand-primary-hover) !important;
+  color: #fff !important;
+}
+
+/* =============================================================
+   Global Toast / Notification System
+   ============================================================= */
+
+.global-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.global-toast--success {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+}
+
+.global-toast--error {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  color: #fff;
+}
+
+.global-toast__icon {
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.global-toast__message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.global-toast__close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.global-toast__close:hover {
+  color: #fff;
+}
+
+/* =============================================================
+   Mobile Responsiveness — Responsive Grid & Layout
+   ============================================================= */
+
+/* Make containers fluid on small screens */
+@media (max-width: 768px) {
+  .container {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  /* Stack all grid columns to full width on mobile */
+  .col-md-3,
+  .col-md-6,
+  .col-md-9,
+  .col-md-10,
+  .col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  /* Remove offsets on mobile */
+  .offset-md-1,
+  .offset-md-2,
+  .offset-md-3 {
+    margin-left: 0;
+  }
+
+  /* Sidebar moves below articles on mobile */
+  .home-page .row {
+    flex-direction: column;
+  }
+
+  .home-page .col-md-3 {
+    order: 2;
+    margin-top: 1.5rem;
+  }
+
+  /* Banner compact on mobile */
+  .banner {
+    padding: 2.5rem 1rem !important;
+  }
+
+  .banner h1.logo-font {
+    font-size: 2.5rem !important;
+  }
+
+  .banner p {
+    font-size: 1.1rem !important;
+  }
+
+  /* Article cards full-width on mobile */
+  .article-preview {
+    margin-bottom: 1rem;
+  }
+
+  /* Auth forms */
+  .auth-page,
+  .settings-page,
+  .editor-page {
+    padding: 2rem 0;
+  }
+
+  /* Toast bottom-center on mobile */
+  .global-toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+/* =============================================================
+   Navbar — Responsive Hamburger Menu
+   ============================================================= */
+
+/* Hamburger button (hidden on desktop) */
+.navbar-toggler {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(79, 70, 229, 0.4);
+  border-radius: var(--border-radius-sm);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-toggler:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
+.navbar-toggler__bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: var(--brand-primary);
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+  .navbar .container {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Show hamburger on small screens */
+  .navbar-toggler {
+    display: flex;
+  }
+
+  /* Nav collapses by default on mobile */
+  .navbar-nav {
+    flex-direction: column;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  /* When menu is open (toggled via JS class on nav) */
+  .navbar-nav.is-open {
+    max-height: 300px;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.75rem 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .pull-xs-right {
+    margin-left: 0 !important;
+  }
+}
+
+/* Touch targets – larger tap areas for mobile buttons */
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.5rem 1rem !important;
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.8rem !important;
+    min-height: 38px;
+  }
+
+  .form-control {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* Profile page user info */
+  .profile-page .user-info .user-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  /* Article page banner */
+  .article-page .banner h1 {
+    font-size: 1.8rem !important;
+  }
 }
