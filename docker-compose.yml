@@ -1,28 +1,71 @@
 version: "3.8"
 
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: ynov-postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ynov_market"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: ynov_market
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: ynov-redis
+    ports:
+      - "6379:6379"
+
   backend:
     build: ./BE
+    container_name: ynov-backend
     ports:
       - "8085:8080"
     environment:
       - PORT=8080
       - GIN_MODE=release
-    volumes:
-      - ./BE/data:/app/data
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456789
+      - POSTGRES_DB=ynov_market
+      - POSTGRES_HOST=db
+      - REDIS_HOST=ynov-redis:6379
     depends_on:
-      - redis
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   frontend:
     build: ./FE
+    container_name: ynov-frontend
     ports:
       - "4100:4100"
     environment:
       - VITE_BACKEND_URL=http://localhost:8085/api
     depends_on:
       - backend
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: final-lab-jenkins
+    user: root
+    ports:
+      - "9000:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+volumes:
+  postgres_data:
+  jenkins_data:
