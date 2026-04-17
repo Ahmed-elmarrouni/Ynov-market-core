@@ -10,6 +10,13 @@ services:
       - GIN_MODE=release
     volumes:
       - ./BE/data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
   frontend:
     build: ./FE

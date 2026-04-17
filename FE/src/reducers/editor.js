@@ -23,16 +23,20 @@ export default (state = {}, action) => {
     case EDITOR_PAGE_UNLOADED:
       return {};
     case ARTICLE_SUBMITTED:
+      const safeErrors = action.payload && action.payload.errors
+        ? action.payload.errors
+        : { network: ['Session expired or unauthorized. Please sign out and sign back in.'] };
+
       return {
         ...state,
         inProgress: null,
-        errors: action.error ? action.payload.errors : null
+        errors: action.error ? safeErrors : null
       };
     case ASYNC_START:
       if (action.subtype === ARTICLE_SUBMITTED) {
         return { ...state, inProgress: true };
       }
-      break;
+      return state; // <-- FIXED: This was a 'break;' before, causing the undefined crash!
     case ADD_TAG:
       return {
         ...state,
@@ -49,6 +53,4 @@ export default (state = {}, action) => {
     default:
       return state;
   }
-
-  return state;
 };

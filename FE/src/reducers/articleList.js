@@ -50,9 +50,10 @@ export default (state = {}, action) => {
       return {
         ...state,
         pager: action.pager,
-        tags: action.payload[0].tags,
-        articles: action.payload[1].articles,
-        articlesCount: action.payload[1].articlesCount,
+        // FIXED: Gracefully fallback to empty arrays if payload errors out
+        tags: action.error ? [] : (action.payload[0]?.tags || []),
+        articles: action.error ? [] : (action.payload[1]?.articles || []),
+        articlesCount: action.error ? 0 : (action.payload[1]?.articlesCount || 0),
         currentPage: 0,
         tab: action.tab
       };
@@ -73,8 +74,9 @@ export default (state = {}, action) => {
       return {
         ...state,
         pager: action.pager,
-        articles: action.payload[1].articles,
-        articlesCount: action.payload[1].articlesCount,
+        // FIXED: Gracefully fallback to empty arrays
+        articles: action.error ? [] : (action.payload[1]?.articles || []),
+        articlesCount: action.error ? 0 : (action.payload[1]?.articlesCount || 0),
         currentPage: 0
       };
     case PROFILE_PAGE_UNLOADED:

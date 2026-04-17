@@ -10,8 +10,8 @@ export default (state = {}, action) => {
     case ARTICLE_PAGE_LOADED:
       return {
         ...state,
-        article: action.payload[0].article,
-        comments: action.payload[1].comments
+        article: action.error ? null : action.payload[0].article,
+        comments: action.error ? [] : action.payload[1].comments
       };
     case ARTICLE_PAGE_UNLOADED:
       return {};
@@ -20,7 +20,7 @@ export default (state = {}, action) => {
         ...state,
         commentErrors: action.error ? action.payload.errors : null,
         comments: action.error ?
-          null :
+          state.comments :
           (state.comments || []).concat([action.payload.comment])
       };
     case DELETE_COMMENT:

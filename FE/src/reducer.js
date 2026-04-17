@@ -7,6 +7,7 @@ import editor from './reducers/editor';
 import home from './reducers/home';
 import profile from './reducers/profile';
 import settings from './reducers/settings';
+import toast from './reducers/toast';
 
 export default combineReducers({
   article,
@@ -17,4 +18,5 @@ export default combineReducers({
   home,
   profile,
   settings,
+  toast,
 });
