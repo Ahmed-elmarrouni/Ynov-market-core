@@ -55,7 +55,9 @@ services:
       - backend
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: jenkins.Dockerfile
     container_name: final-lab-jenkins
     user: root
     ports:
