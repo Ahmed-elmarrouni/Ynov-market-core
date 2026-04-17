@@ -15,7 +15,8 @@ pipeline {
             parallel {
                 stage('Backend CI') {
                     agent {
-                        docker { image 'golang:1.22-alpine' }
+                        // SENIOR FIX: Upgraded to match go.mod requirements (1.25+)
+                        docker { image 'golang:1.26-alpine' }
                     }
                     steps {
                         sh 'apk add --no-cache gcc musl-dev'
