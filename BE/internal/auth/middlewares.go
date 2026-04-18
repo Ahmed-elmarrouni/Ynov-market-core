@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -73,7 +74,8 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 					val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
 					if err == nil && val == "true" {
 						if auto401 {
-							c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
+							// SENIOR FIX: Pass a real error instead of nil to prevent panics!
+							c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", errors.New("token is blacklisted")))
 						} else {
 							c.Abort()
 						}
