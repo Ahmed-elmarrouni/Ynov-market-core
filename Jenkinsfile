@@ -41,7 +41,10 @@ pipeline {
 
         stage('Security (SAST)') {
             agent {
-                docker { image 'securego/gosec:latest' }
+                docker { 
+                    image 'securego/gosec:latest' 
+                    args '--entrypoint=""'
+                }
             }
             steps {
                 dir('BE') {
