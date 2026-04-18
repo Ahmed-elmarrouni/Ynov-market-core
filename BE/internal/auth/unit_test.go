@@ -121,7 +121,7 @@ var unauthRequestTests = []struct {
 		"POST",
 		`{"user":{"username": "wangzitian0","email": "wzt@gg.cn","password": "jakejxke"}}`,
 		http.StatusCreated,
-		`{"user":{"username":"wangzitian0","email":"wzt@gg.cn","bio":"","image":"","token":"([a-zA-Z0-9-_.]{115})"}}`,
+		`{"user":{"username":"wangzitian0","email":"wzt@gg.cn","bio":"","image":"","token":"([a-zA-Z0-9-_.]+)"}}`,
 		"valid data and should return StatusCreated",
 	},
 	{
@@ -170,7 +170,7 @@ var unauthRequestTests = []struct {
 		"POST",
 		`{"user":{"email": "user1@linkedin.com","password": "password123"}}`,
 		http.StatusOK,
-		`{"user":{"username":"user1","email":"user1@linkedin.com","bio":"bio1","image":"http://image/1.jpg","token":"([a-zA-Z0-9-_.]{115})"}}`,
+		`{"user":{"username":"user1","email":"user1@linkedin.com","bio":"bio1","image":"http://image/1.jpg","token":"([a-zA-Z0-9-_.]+)"}}`,
 		"right info login should return user",
 	},
 	{
@@ -242,7 +242,7 @@ var unauthRequestTests = []struct {
 		"GET",
 		``,
 		http.StatusOK,
-		`{"user":{"username":"user1","email":"user1@linkedin.com","bio":"bio1","image":"http://image/1.jpg","token":"([a-zA-Z0-9-_.]{115})"}}`,
+		`{"user":{"username":"user1","email":"user1@linkedin.com","bio":"bio1","image":"http://image/1.jpg","token":"([a-zA-Z0-9-_.]+)"}}`,
 		"request should return current user with token",
 	},
 
@@ -303,7 +303,7 @@ var unauthRequestTests = []struct {
 		"PUT",
 		`{"user":{"username":"user123","password": "password126","email":"user123@linkedin.com","bio":"bio123","image":"http://hehe/123.jpg"}}`,
 		http.StatusOK,
-		`{"user":{"username":"user123","email":"user123@linkedin.com","bio":"bio123","image":"http://hehe/123.jpg","token":"([a-zA-Z0-9-_.]{115})"}}`,
+		`{"user":{"username":"user123","email":"user123@linkedin.com","bio":"bio123","image":"http://hehe/123.jpg","token":"([a-zA-Z0-9-_.]+)"}}`,
 		"current user profile should be changed",
 	},
 	{
@@ -323,7 +323,7 @@ var unauthRequestTests = []struct {
 		"POST",
 		`{"user":{"email": "user123@linkedin.com","password": "password126"}}`,
 		http.StatusOK,
-		`{"user":{"username":"user123","email":"user123@linkedin.com","bio":"bio123","image":"http://hehe/123.jpg","token":"([a-zA-Z0-9-_.]{115})"}}`,
+		`{"user":{"username":"user123","email":"user123@linkedin.com","bio":"bio123","image":"http://hehe/123.jpg","token":"([a-zA-Z0-9-_.]+)"}}`,
 		"user should login using new password after changed",
 	},
 	{

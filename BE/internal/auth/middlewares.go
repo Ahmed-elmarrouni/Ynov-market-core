@@ -42,6 +42,53 @@ func UpdateContextUserModel(c *gin.Context, my_user_id uint) {
 // You can custom middlewares yourself as the doc: https://github.com/gin-gonic/gin#custom-middleware
 //
 //	r.Use(AuthMiddleware(true))
+// func AuthMiddleware(auto401 bool) gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		UpdateContextUserModel(c, 0)
+// 		tokenString := extractToken(c)
+
+// 		if tokenString == "" {
+// 			if auto401 {
+// 				c.AbortWithStatus(http.StatusUnauthorized)
+// 			}
+// 			return
+// 		}
+
+// 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+// 			// Validate the signing method
+// 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+// 				return nil, jwt.ErrSignatureInvalid
+// 			}
+// 			return []byte(common.JWTSecret), nil
+// 		})
+
+// 		if err != nil {
+// 			if auto401 {
+// 				c.AbortWithStatus(http.StatusUnauthorized)
+// 			}
+// 			return
+// 		}
+
+// 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+// 			// Blacklist verification
+// 			if jti, ok := claims["jti"].(string); ok {
+// 				val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
+// 				if err == nil && val == "true" {
+// 					if auto401 {
+// 						c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
+// 					} else {
+// 						c.Abort()
+// 					}
+// 					return
+// 				}
+// 			}
+
+// 			my_user_id := uint(claims["id"].(float64))
+// 			UpdateContextUserModel(c, my_user_id)
+// 		}
+// 	}
+// }
+
 func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		UpdateContextUserModel(c, 0)
@@ -55,7 +102,6 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Validate the signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
 			}
@@ -70,16 +116,18 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Blacklist verification
+			// SAFEGUARD: Check if cache.Client exists before checking blacklist
 			if jti, ok := claims["jti"].(string); ok {
-				val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
-				if err == nil && val == "true" {
-					if auto401 {
-						c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
-					} else {
-						c.Abort()
+				if cache.Client != nil {
+					val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
+					if err == nil && val == "true" {
+						if auto401 {
+							c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
+						} else {
+							c.Abort()
+						}
+						return
 					}
-					return
 				}
 			}
 
