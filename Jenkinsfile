@@ -4,8 +4,8 @@ pipeline {
     environment {
         REGISTRY = "index.docker.io/v1/"
         DOCKER_CREDS_ID = "docker-hub-credentials"
-        IMAGE_BACKEND = "aelmarrouni/conduit-backend"
-        IMAGE_FRONTEND = "aelmarrouni/conduit-frontend"
+        IMAGE_BACKEND = "ahmedelmrn/conduit-backend"
+        IMAGE_FRONTEND = "ahmedelmrn/conduit-frontend"
         VERSION = "${env.BUILD_ID}"
     }
 
@@ -93,7 +93,6 @@ pipeline {
 
     post {
         always {
-            // Clean up workspace to save disk space
             cleanWs()
         }
         success {
