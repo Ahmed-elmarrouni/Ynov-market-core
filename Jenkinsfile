@@ -19,7 +19,8 @@ pipeline {
                     steps {
                         sh 'apk add --no-cache gcc musl-dev'
                         dir('BE') {
-                            sh 'echo "Unit tests bypassed for presentation mode. Code compiles successfully!"'
+                            sh 'go test -v ./... -coverprofile=coverage.out'
+                            sh 'go tool cover -func=coverage.out'
                         }
                     }
                 }

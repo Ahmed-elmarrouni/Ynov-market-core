@@ -63,13 +63,52 @@ func ArticleCreate(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"article": serializer.Response()})
 }
 
+// func ArticleList(c *gin.Context) {
+// 	tag := c.Query("tag")
+// 	author := c.Query("author")
+// 	favorited := c.Query("favorited")
+// 	limit := c.Query("limit")
+// 	offset := c.Query("offset")
+// 	q := c.Query("q")
+
+// 	var myUserModel auth.UserModel
+// 	if val, exists := c.Get("my_user_model"); exists {
+// 		myUserModel = val.(auth.UserModel)
+// 	}
+
+// 	cacheKey := "articles:" + tag + ":" + author + ":" + favorited + ":" + limit + ":" + offset + ":" + q + ":user:" + strconv.Itoa(int(myUserModel.ID))
+
+// 	// SAFEGUARD: Only use cache if Redis is connected
+// 	if cache.Client != nil {
+// 		if cached, err := cache.Client.Get(cache.Ctx, cacheKey).Result(); err == nil {
+// 			c.Data(http.StatusOK, "application/json", []byte(cached))
+// 			return
+// 		}
+// 	}
+
+// 	articleModels, modelCount, err := FindManyArticle(tag, author, limit, offset, favorited, q, myUserModel.ID)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, common.NewError("articles", errors.New("Invalid param")))
+// 		return
+// 	}
+// 	serializer := ArticlesSerializer{c, articleModels}
+// 	responseBuf, _ := json.Marshal(gin.H{"articles": serializer.Response(), "articlesCount": modelCount})
+
+// 	// SAFEGUARD: Only set cache if Redis is connected
+// 	if cache.Client != nil {
+// 		cache.Client.Set(cache.Ctx, cacheKey, string(responseBuf), 10*time.Minute)
+// 	}
+
+// 	c.Data(http.StatusOK, "application/json", responseBuf)
+// }
+
 func ArticleList(c *gin.Context) {
 	tag := c.Query("tag")
 	author := c.Query("author")
 	favorited := c.Query("favorited")
 	limit := c.Query("limit")
 	offset := c.Query("offset")
-	q := c.Query("q")
+	q := c.Query("q") // Search query for FTS
 
 	var myUserModel auth.UserModel
 	if val, exists := c.Get("my_user_model"); exists {
@@ -78,7 +117,7 @@ func ArticleList(c *gin.Context) {
 
 	cacheKey := "articles:" + tag + ":" + author + ":" + favorited + ":" + limit + ":" + offset + ":" + q + ":user:" + strconv.Itoa(int(myUserModel.ID))
 
-	// SAFEGUARD: Only use cache if Redis is connected
+	// SAFEGUARD: Only check cache if Redis is connected (prevents test panics)
 	if cache.Client != nil {
 		if cached, err := cache.Client.Get(cache.Ctx, cacheKey).Result(); err == nil {
 			c.Data(http.StatusOK, "application/json", []byte(cached))
@@ -101,42 +140,6 @@ func ArticleList(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json", responseBuf)
 }
-
-// func ArticleList(c *gin.Context) {
-// 	tag := c.Query("tag")
-// 	author := c.Query("author")
-// 	favorited := c.Query("favorited")
-// 	limit := c.Query("limit")
-// 	offset := c.Query("offset")
-// 	q := c.Query("q") // Search query for FTS
-
-// 	// Check if my_user_model exists (since it's an anonymous registration, it might not exist if they don't have token)
-// 	var myUserModel auth.UserModel
-// 	if val, exists := c.Get("my_user_model"); exists {
-// 		myUserModel = val.(auth.UserModel)
-// 	}
-
-// 	// Cache aside logic
-// 	cacheKey := "articles:" + tag + ":" + author + ":" + favorited + ":" + limit + ":" + offset + ":" + q + ":user:" + strconv.Itoa(int(myUserModel.ID))
-// 	if cached, err := cache.Client.Get(cache.Ctx, cacheKey).Result(); err == nil {
-// 		// Skip DB and serve from Redis!
-// 		c.Data(http.StatusOK, "application/json", []byte(cached))
-// 		return
-// 	}
-
-// 	articleModels, modelCount, err := FindManyArticle(tag, author, limit, offset, favorited, q, myUserModel.ID)
-// 	if err != nil {
-// 		c.JSON(http.StatusNotFound, common.NewError("articles", errors.New("Invalid param")))
-// 		return
-// 	}
-// 	serializer := ArticlesSerializer{c, articleModels}
-// 	responseBuf, _ := json.Marshal(gin.H{"articles": serializer.Response(), "articlesCount": modelCount})
-
-// 	// Cache it for 10 minutes
-// 	cache.Client.Set(cache.Ctx, cacheKey, string(responseBuf), 10*time.Minute)
-
-// 	c.Data(http.StatusOK, "application/json", responseBuf)
-// }
 
 func ArticleFeed(c *gin.Context) {
 	limit := c.Query("limit")

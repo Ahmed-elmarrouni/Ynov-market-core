@@ -65,25 +65,6 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 			return
 		}
 
-		// if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		// 	// SAFEGUARD: Check if cache.Client exists before checking blacklist
-		// 	if jti, ok := claims["jti"].(string); ok {
-		// 		if cache.Client != nil {
-		// 			val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
-		// 			if err == nil && val == "true" {
-		// 				if auto401 {
-		// 					c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", nil))
-		// 				} else {
-		// 					c.Abort()
-		// 				}
-		// 				return
-		// 			}
-		// 		}
-		// 	}
-
-		// 	my_user_id := uint(claims["id"].(float64))
-		// 	UpdateContextUserModel(c, my_user_id)
-		// }
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			// Blacklist verification
 			if jti, ok := claims["jti"].(string); ok {
