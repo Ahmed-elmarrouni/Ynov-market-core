@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -71,10 +72,10 @@ func AuthMiddleware(auto401 bool) gin.HandlerFunc {
 			if jti, ok := claims["jti"].(string); ok {
 				// SAFEGUARD: Only check Redis if the client is actually connected
 				if cache.Client != nil {
-					val, err := cache.Client.Get(cache.Ctx, "blacklist:"+jti).Result()
+					// SENIOR FIX: Use context.Background() directly to prevent nil context panics
+					val, err := cache.Client.Get(context.Background(), "blacklist:"+jti).Result()
 					if err == nil && val == "true" {
 						if auto401 {
-							// SENIOR FIX: Pass a real error instead of nil to prevent panics!
 							c.AbortWithStatusJSON(http.StatusUnauthorized, common.NewError("auth", errors.New("token is blacklisted")))
 						} else {
 							c.Abort()

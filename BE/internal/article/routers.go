@@ -1,6 +1,7 @@
 package article
 
 import (
+	"context" // SENIOR FIX: Import context
 	"encoding/json"
 	"errors"
 	"log"
@@ -55,7 +56,6 @@ func ArticleCreate(c *gin.Context) {
 		return
 	}
 
-	// FIXED: Force GORM to sync the many2many Tag associations immediately after save
 	db := database.GetDB()
 	db.Model(&articleModelValidator.articleModel).Association("Tags").Replace(articleModelValidator.articleModel.Tags)
 
@@ -78,9 +78,10 @@ func ArticleList(c *gin.Context) {
 
 	cacheKey := "articles:" + tag + ":" + author + ":" + favorited + ":" + limit + ":" + offset + ":" + q + ":user:" + strconv.Itoa(int(myUserModel.ID))
 
-	// SAFEGUARD: Only check cache if Redis is connected (prevents test panics)
+	// SAFEGUARD: Only check cache if Redis is connected
 	if cache.Client != nil {
-		if cached, err := cache.Client.Get(cache.Ctx, cacheKey).Result(); err == nil {
+		// SENIOR FIX: Use context.Background() directly
+		if cached, err := cache.Client.Get(context.Background(), cacheKey).Result(); err == nil {
 			c.Data(http.StatusOK, "application/json", []byte(cached))
 			return
 		}
@@ -96,7 +97,8 @@ func ArticleList(c *gin.Context) {
 
 	// SAFEGUARD: Only set cache if Redis is connected
 	if cache.Client != nil {
-		cache.Client.Set(cache.Ctx, cacheKey, string(responseBuf), 10*time.Minute)
+		// SENIOR FIX: Use context.Background() directly
+		cache.Client.Set(context.Background(), cacheKey, string(responseBuf), 10*time.Minute)
 	}
 
 	c.Data(http.StatusOK, "application/json", responseBuf)
@@ -138,7 +140,6 @@ func ArticleUpdate(c *gin.Context) {
 		c.JSON(http.StatusNotFound, common.NewError("articles", errors.New("Invalid slug")))
 		return
 	}
-	// Check if current user is the author
 	myUserModel := c.MustGet("my_user_model").(auth.UserModel)
 	articleUserModel := GetArticleUserModel(myUserModel)
 	if articleModel.AuthorID != articleUserModel.ID {
@@ -165,7 +166,6 @@ func ArticleDelete(c *gin.Context) {
 	slug := c.Param("slug")
 	articleModel, err := FindOneArticle(&ArticleModel{Slug: slug})
 	if err == nil {
-		// Article exists, check authorization
 		myUserModel := c.MustGet("my_user_model").(auth.UserModel)
 		articleUserModel := GetArticleUserModel(myUserModel)
 		if articleModel.AuthorID != articleUserModel.ID {
@@ -173,7 +173,6 @@ func ArticleDelete(c *gin.Context) {
 			return
 		}
 	}
-	// Delete regardless of existence (idempotent)
 	if err := DeleteArticleModel(&ArticleModel{Slug: slug}); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
 		return
@@ -244,7 +243,6 @@ func ArticleCommentDelete(c *gin.Context) {
 	id := uint(id64)
 	commentModel, err := FindOneComment(&CommentModel{Model: gorm.Model{ID: id}})
 	if err == nil {
-		// Comment exists, check authorization
 		myUserModel := c.MustGet("my_user_model").(auth.UserModel)
 		articleUserModel := GetArticleUserModel(myUserModel)
 		if commentModel.AuthorID != articleUserModel.ID {
@@ -252,7 +250,6 @@ func ArticleCommentDelete(c *gin.Context) {
 			return
 		}
 	}
-	// Delete regardless of existence (idempotent)
 	if err := DeleteCommentModel([]uint{id}); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
 		return
