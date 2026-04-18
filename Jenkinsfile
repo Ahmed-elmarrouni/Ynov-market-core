@@ -31,7 +31,6 @@ pipeline {
                     steps {
                         dir('FE') {
                             sh 'npm ci'
-                            // We keep the build step because it generates the actual static files
                             sh 'npm run build' 
                         }
                     }
